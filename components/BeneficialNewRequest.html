@@ -1,0 +1,40 @@
+<iframe src="" id="iframebox_newRequest"
+style="position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:-99999999;">
+    Your browser doesn't support iframes
+</iframe>
+<div class="spinner-border color-highlight" role="status" id="loader_newRequest" style="padding-top:20%"></div>
+<script>
+    var url_forRequests = api_server + '/access/requests/create';
+    var access_id = localStorage.getItem("access_id");
+    var access_token = localStorage.getItem("access_token");
+    $('#iframebox_newRequest').attr('src', "./embedable/quizable-createRequest/dist/index.html?readyForUse_apiPoint_address=" + url_forRequests + "&readyForUse_userid=" + access_id + "&readyForUse_authToken=" + access_token)
+    document.getElementById('iframebox_newRequest').addEventListener("load", function() {
+        $('#loader_newRequest').hide();
+    });
+</script>
+
+  <script>
+    $('#iframebox_newRequesttttt').click(function(){
+        var request_grade = $('#request_grade').val();
+        var request_subject = $('#request_subject').val();
+        var request_notes = $('#request_notes').val();
+
+        $.ajax({
+            url: api_server + '/access/requests/create',
+            method: 'get',
+            cache: false,
+            data: {user_id: localStorage.getItem("access_id"), token: localStorage.getItem("access_token"),
+                   grade: request_grade, subject: request_subject, notes: request_notes},
+	        success: function(data){
+                if(data.status == "okay"){
+                    console.info("Created new request for volunteering. ID: " + data.requestid);
+                    window.postMessage({
+                        type: "call_indexjs",
+                        action: "navigateto",
+                        url: "/beneficialViewRequest#" + data.requestid
+                    }, window.location.origin);
+                }
+	        }
+        });
+    });
+  </script>
