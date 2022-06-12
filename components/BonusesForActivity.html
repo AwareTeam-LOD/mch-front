@@ -1,0 +1,147 @@
+<div class="col-6 ps-2 data_bonuses_available p-3">
+    <div class="card card-style mx-0">
+        <div class="px-2 margin-left-small">
+            <p class="font-600 mb-n1 pt-1 mt-2">Ваш счет</p>
+            <h4 class="color-highlight" id="bonuses_available_amount"> -- </h4>
+            <p class="font-11 line-height-s">
+                Свои баллы Вы можете использовать для обмена на предложения партнеров. Вы получаете баллы за добрые дела и участие в наших событиях.
+            </p>
+            <a href="/bonusesRating" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-700 shadow-s bg-blue-dark" data-link>Рейтинг</a>
+        </div>
+    </div>
+</div>
+<div class="content mt-0 mb-0 mx-0 p-3">
+    <div class="row mb-0" id="data_block">
+        
+    </div>
+    <div class="spinner-border color-green-dark awaiting_spinner text-center">
+    </div>
+    
+</div>
+
+<style>
+@media screen and (min-width: 970px) {
+  .data_bonuses_available{
+    position:absolute;
+    margin-left: 48%;
+    width: 260px;
+  }
+
+  .margin-left-small{
+    margin-left: 7px;
+  }
+}
+
+@media only screen and (min-device-width: 0px) and (max-width: 969px) {
+  .data_bonuses_available{
+    width: 100%;
+  }
+}
+</style>
+
+
+<script>
+
+function BonusesPartners_Get(byStatus = "all"){
+    $.ajax({
+        url: api_server + '/access/bonuses/get_all',
+        method: 'get',
+        cache: false,
+        data: {
+            byStatus: byStatus,
+            user_id: localStorage.getItem("access_id"),
+            token: localStorage.getItem("access_token")
+        },
+        success: function (data) {
+
+            console.log("Received data about User's requests. Fetched, and rendering now..");
+
+            $('#data_block').empty();
+
+            console.log(data.result);
+            console.log(data.result.length);
+            for (var i = 0; i < data.result.length; i++) {
+                //console.log(data.result[index].id);
+                
+                var tempdata_var_title = data.result[i].title;
+                var tempdata_var_description = data.result[i].description;
+                var tempdata_var_price = data.result[i].price;
+                var tempdata_var_image_codifiator = data.result[i].image_codifiator;
+
+                var AboutUser = JSON.parse(localStorage.getItem("tempdata_shortAboutUser"));
+                var AboutUser_bonuses = AboutUser.bonuses;
+
+                $('#bonuses_available_amount').text(AboutUser_bonuses)
+
+                if(tempdata_var_price < AboutUser_bonuses){
+                    var tempdata_var_buttonTag = `
+                        <a href="#" class="btn btn-m btn-full mb-3 rounded-xl text-uppercase font-700 shadow-s bg-blue-dark">Обменять</a>
+                    `
+                }else{
+                    var tempdata_var_buttonTag = `
+                        <a href="#" class="btn btn-m btn-full mb-3 rounded-xl border-dark-light rounded-s color-dark-light">Не хватает бонусов, нужно еще: <b><i>` + (tempdata_var_price - AboutUser_bonuses + 0) + `</i></b></a>
+                    `
+                }
+
+            
+                
+                $("#data_block").append(`
+                <div class="col-6 pe-2">
+                    <div class="card card-style mx-0">
+                        <img src="static/images/pictures/` + tempdata_var_image_codifiator + `" height="170px">
+                        <div class="px-2">
+                            <p class="color-highlight font-600 mb-n1 pt-1">` + tempdata_var_price + ` баллов </p>
+                            <h2>` + tempdata_var_title + `</h2>
+                            <p class="font-11 line-height-s">
+                                ` + tempdata_var_description + `
+                            </p>
+                            ` + tempdata_var_buttonTag + `
+                        </div>
+                    </div>
+                </div>
+                `);
+
+                //$("div[request_id='" + data.result[i].id + "']").click({data: data.result[i].id}, registerBinding_Redirect);
+            }
+
+            function registerBinding_Redirect(data){
+                window.postMessage({
+                    type: "call_indexjs",
+                    action: "navigateto",
+                    url: "/beneficialViewRequest#" + data.data.data
+                }, window.location.origin);
+            }
+
+            if(data.result.length == 0){
+                $('.awaiting_spinner').hide();
+                $('#nothing_yet').show();
+            }else{
+                $('.awaiting_spinner').hide();
+                $('#data_block').show();
+            }
+
+        }
+    });
+}
+
+$("input:checkbox").on('click', function() {
+    // in the handler, 'this' refers to the box clicked on
+    var $box = $(this);
+    if ($box.is(":checked")) {
+        // the name of the box is retrieved using the .attr() method
+        // as it is assumed and expected to be immutable
+        var group = "input:checkbox[name='" + $box.attr("name") + "']";
+        // the checked state of the group/box on the other hand will change
+        // and the current value is retrieved using .prop() method
+        $(group).prop("checked", false);
+        $box.prop("checked", true);
+    } else {
+        $box.prop("checked", false);
+    }
+    BeneficialRequests_Get($box.attr('id'));
+});
+
+BonusesPartners_Get();
+
+
+</script>

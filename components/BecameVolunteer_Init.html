@@ -1,0 +1,142 @@
+<div class="card card-style">
+    <div class="content">
+        <p class="font-600 color-highlight mb-n1">Давайте приступим</p>
+        <h3>Стать волонтером</h3>
+        <p>
+            Вы можете стать волонтером. Это отличная возможность поделиться своими знаниями с теми, кому это нужно. Заполните простую заявку, чтобы мы узнали Вас получше.
+        </p>
+        <div class="input-style has-borders no-icon validate-field input-style-always-active mb-4">
+            <input type="text" type="number" id="dobro_id_input" placeholder="ID">
+            <label for="form1" class="color-highlight font-500">ID на Добро.ру</label>
+            <i class="fa fa-times disabled invalid color-red-dark"></i>
+            <i class="fa fa-check disabled valid color-green-dark"></i>
+            <em>(обязательно)</em>
+        </div>
+        <div class="divider mb-2"></div>
+        <p class="font-600 mb-n1 color-highlight">Дополнительные</p>
+        <h1 class="mb-0">Шаги</h1>
+        <p>
+            Пройдите небольшие тесты, чтобы проверить, готовы ли Вы стать репетитором и волонтером на нашей платформе.<br>Тесты не займут много времени, - они простые и интересные!
+        </p>
+
+        <div class="d-flex mb-4">
+            <div class="align-self-center">
+                <h1 class="font-40 opacity-20 mb-n1 icon-80">01</h1>
+            </div>
+            <div class="align-self-center">
+                <h5 class="font-12 mb-n1 opacity-30">8 минут</h5>
+                <h5 class="mb-0">Эмоциональная готовность</h5>
+            </div>
+            <div class="align-self-center ms-auto">
+                <h1 class="font-30"><a href="#"><i id="marker-1" class="fa fa-play-circle color-highlight opacity-30"></i>
+                <i id="marker-1-checked" style="display: none;" class="bi bi-check-circle-fill color-highlight opacity-30"></i></a></h1></a></h1>
+            </div>
+        </div>
+        <div class="d-flex mb-4">
+            <div class="align-self-center">
+                <h1 class="font-40 opacity-20 mb-n1 icon-80">02</h1>
+            </div>
+            <div class="align-self-center">
+                <h5 class="font-12 mb-n1 opacity-30">6 минут</h5>
+                <h5 class="mb-0">Поведение в ситуациях</h5>
+            </div>
+            <div class="align-self-center ms-auto">
+                <h1 class="font-30"><a href="#"><i id="marker-2" class="fa fa-play-circle color-highlight opacity-30"></i>
+                <i id="marker-2-checked" style="display: none;" class="bi bi-check-circle-fill color-highlight opacity-30"></i></a></h1></a></h1>
+            </div>
+        </div>
+        <div class="d-flex mb-4">
+            <div class="align-self-center">
+                <h1 class="font-40 opacity-20 mb-n1 icon-80">03</h1>
+            </div>
+            <div class="align-self-center">
+                <h5 class="font-12 mb-n1 opacity-30">19 минут</h5>
+                <h5 class="mb-0">Предметная вовлеченность</h5>
+            </div>
+            <div class="align-self-center ms-auto">
+                <h1 class="font-30"><a href="#"><i id="marker-3" class="fa fa-play-circle color-highlight opacity-30"></i>
+                <i id="marker-3-checked" style="display: none;" class="bi bi-check-circle-fill color-highlight opacity-30"></i></a></h1>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="font-600 mb-n1 color-highlight" id="status_preMessage">. . .</p>
+        <h1 class="mb-0">Подтверждение</h1>
+        <p id="status_Message">
+            . . .
+        </p>
+        <a href="#" id="continue_btn" style="display: none;" class="btn btn-full btn-m rounded-sm gradient-dark font-600">Продолжить</a>
+    </div>
+</div>
+
+<script>
+    $("#dobro_id_input").val(localStorage.getItem('tempdata__dobroruid'));
+    $('#dobro_id_input').on('keyup', function() {
+        localStorage.setItem('tempdata__dobroruid', this.value);
+    });
+
+    $("#continue_btn").click(function() {
+
+        $.ajax({
+            url: api_server + '/access/volunteer/enroll',
+            method: 'get',
+            cache: false,
+            data: {user_id: localStorage.getItem("access_id"), token: localStorage.getItem("access_token"), dobroru_id: $('#dobro_id_input').val()},
+	        success: function(data){
+                if(data.status == "enrolled"){
+                    console.info(data);
+                    window.postMessage({
+                        type: "call_indexjs",
+                        action: "navigateto",
+                        url: "/volunteer#enrolled"
+                    }, window.location.origin);
+                }
+	        }
+        });
+    });
+
+    var marker1 = document.getElementById("marker-1");
+    var marker2 = document.getElementById("marker-2");
+    var marker3 = document.getElementById("marker-3");
+
+    var AboutUser = JSON.parse(localStorage.getItem("tempdata_shortAboutUser"));
+    var AboutUser_volunteer_status = JSON.parse(AboutUser.volunteer_status);
+    
+    var passed_subject_involvement = 0;
+
+    if ('subject_involvement' in AboutUser_volunteer_status.passed_quizes) {
+        passed_subject_involvement++;
+        $('#marker-3').hide();
+        $('#marker-3-checked').show();
+    }else{
+        marker3.classList.remove("opacity-30");
+    }
+
+    if ('behavior_in_situations' in AboutUser_volunteer_status.passed_quizes) {
+        passed_subject_involvement++;
+        $('#marker-2').hide();
+        $('#marker-2-checked').show();
+    }else{
+        marker2.classList.remove("opacity-30");
+    }
+    
+    if ('emotional_readness' in AboutUser_volunteer_status.passed_quizes) {
+        passed_subject_involvement++;
+        $('#marker-1').hide();
+        $('#marker-1-checked').show();
+    } else {
+        marker1.classList.remove("opacity-30");
+    }
+
+    if(passed_subject_involvement < 3){
+        $('#status_preMessage').text("Еще чуть-чуть!");
+        $('#status_Message').text("Пройдите необходимые тесты, чтобы продолжить!");
+    }else{
+        $('#status_preMessage').text("Почти готово");
+        $('#status_Message').text("Вы прошли все необходимые этапы и находитесь в одном нажатии, чтобы стать волонтером. Смело продолжайте, когда будете готовы.");
+        $('#continue_btn').show();
+    }
+
+    
+</script>
